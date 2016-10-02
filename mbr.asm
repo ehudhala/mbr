@@ -18,10 +18,16 @@ main:
 
     push hello_world_msg
     call print_string
+    add sp, 2
 
+    call check_a20
+    call disable_a20
+    call check_a20
+    call enable_a20
     call check_a20
 
     jmp exit
+
 
 check_a20:
     ; Check if the A20 controller is alowing addresses of more than 20 bit or not.
@@ -48,21 +54,35 @@ check_a20:
 
 a20_accessible:
     push a20_accessible_msg
-    call print_string
-    ret
+    jmp print_a20_accessibility_msg
 
 a20_inaccessible:
     push a20_inaccessible_msg
+
+print_a20_accessibility_msg:
     call print_string
+    add sp, 2
     ret
+
+
+enable_a20:
+    in al, 0x92
+    or al, 2
+    out 0x92, al
+    ret
+
+
+disable_a20:
+    in al, 0x92
+    and al, 0xFD
+    out 0x92, al
+    ret
+
 
 print_string:
     ; Gets a pointer to a string (pushed to the stack), and prints it.
     ; Terminates on the first 0 byte in the string.
-    pop ax
-    pop si
-    push ax
-    ;mov si, [esp + 4]
+    mov si, [esp + 2]
 
     mov ah, 0x0E
     mov cx, 0x01
